@@ -334,7 +334,7 @@ constexpr std::size_t size(const T (&array)[N]) noexcept
 template <std::size_t N>
 inline std::size_t size(NANODBC_SQLCHAR const (&array)[N]) noexcept
 {
-    auto const n = std::char_traits<NANODBC_SQLCHAR>::length(array);
+    auto const n = strlen(reinterpret_cast<const char*>(array));
     NANODBC_ASSERT(n < N);
     return n < N ? n : N - 1;
 }
@@ -5046,9 +5046,9 @@ std::list<datasource> list_datasources()
                 "incompatible SQLCHAR and string::value_type");
 
             datasource dsn;
-            dsn.name = string(&name[0], &name[std::char_traits<NANODBC_SQLCHAR>::length(name)]);
+            dsn.name = string(&name[0], &name[strlen(reinterpret_cast<const char*>(name))]);
             dsn.driver =
-                string(&driver[0], &driver[std::char_traits<NANODBC_SQLCHAR>::length(driver)]);
+                string(&driver[0], &driver[strlen(reinterpret_cast<const char*>(driver))]);
 
             dsns.push_back(std::move(dsn));
             direction = SQL_FETCH_NEXT;
@@ -5099,7 +5099,7 @@ std::list<driver> list_drivers()
                 "incompatible SQLCHAR and string::value_type");
 
             driver drv;
-            drv.name = string(&descr[0], &descr[std::char_traits<NANODBC_SQLCHAR>::length(descr)]);
+            drv.name = string(&descr[0], &descr[strlen(reinterpret_cast<const char*>(descr))]);
 
             // Split "Key1=Value1\0Key2=Value2\0\0" into list of key-value pairs
             auto beg = &attrs[0];
@@ -5994,7 +5994,7 @@ implementation_row_descriptor::sql_get_descr_field::operator string() const
     NANODBC_ASSERT(len % sizeof(NANODBC_SQLCHAR) == 0);
     len = len / sizeof(NANODBC_SQLCHAR);
 
-    NANODBC_ASSERT(len <= std::char_traits<NANODBC_SQLCHAR>::length(value));
+    NANODBC_ASSERT(len <= strlen(reinterpret_cast<const char*>(value)));
     return {&value[0], &value[len]};
 }
 
